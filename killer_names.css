@@ -258,6 +258,7 @@ input#target-count:focus {
 	flex-wrap: wrap;
 	justify-content: space-evenly;
 	align-items: center;
+	height: 100%;
 }
 #display .display-all.player-container {
 	margin: 0.7rem;
@@ -295,7 +296,7 @@ main {
 }
 
 #toggle-sidebar > .line {
-	width: 1.25rem;
+	width: 20px;
 	height: 2px;
 	background-color: var(--accent-color);
 	transition: var(--default-transition);
@@ -316,8 +317,8 @@ main {
 		position: absolute;
 		top: 0.5rem;
 		left: 0.5rem;
-		width: 2rem;
-		height: 2rem;
+		width: 32px;
+		height: 32px;
 		border: 2px solid var(--bg-light2);
 	}
 
@@ -343,5 +344,17 @@ main {
 
 	.hidden {
 		display: none !important;
+	}
+}
+
+@media screen and (max-width: 768px) {
+	html {
+		font-size: 0.7rem;
+	}
+}
+
+@media screen and (max-width: 600px) {
+	html {
+		font-size: 0.5rem;
 	}
 }
