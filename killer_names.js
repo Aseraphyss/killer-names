@@ -17,6 +17,7 @@ const displayID = "display";
 const playerCountID = "player-count";
 const seedID = "seed-input";
 const buttonID = "button-container";
+const contentID = "content";
 
 function generateNames() {
 	const text = document.getElementById(textareaID).value;
@@ -58,9 +59,11 @@ function tryAssignTargets(players) {
 			assignTargets(players);
 			return;
 		} catch (error) {
-			console.error(error);
+			console.error("Target assignment failed. Trying again.");
 		}
 	}
+	alert("Target assignment failed. Too many tries.");
+	throw new Error("Target assignment failed. Too many tries.");
 }
 function assignTargets(players) {
 	// add a random target to each player so that a closed loop is created
@@ -146,22 +149,26 @@ class EventManager {
 	static lastEnter = null;
 
 	static setEscListener(callback) {
-		document.removeEventListener("keydown", EventManager.lastEsc);
+		const content = document.getElementById(contentID);
+		content.removeEventListener("keydown", EventManager.lastEsc);
+		if (callback === null) return;
 		EventManager.lastEsc = (event) => {
 			if (event.key === "Escape" && event.repeat === false) {
 				callback();
 			}
 		};
-		document.addEventListener("keydown", EventManager.lastEsc);
+		content.addEventListener("keydown", EventManager.lastEsc);
 	}
 	static setEnterListener(callback) {
-		document.removeEventListener("keydown", EventManager.lastEnter);
+		const content = document.getElementById(contentID);
+		content.removeEventListener("keydown", EventManager.lastEnter);
+		if (callback === null) return;
 		EventManager.lastEnter = (event) => {
 			if (event.key === "Enter" && event.repeat === false) {
 				callback();
 			}
 		};
-		document.addEventListener("keydown", EventManager.lastEnter);
+		content.addEventListener("keydown", EventManager.lastEnter);
 	}
 }
 
@@ -181,7 +188,6 @@ class DisplayManager {
 		document.getElementById(buttonID).innerText = "";
 		switch (this.state) {
 			case "initial":
-				EventManager.setEnterListener(() => this.setState("initial"));
 				this.renderInitial();
 				break;
 			case "shureAllTargets":
@@ -217,7 +223,7 @@ class DisplayManager {
 		const display = document.getElementById(displayID);
 		display.innerText = "";
 
-		EventManager.setEnterListener(() => this.setState("showSingle"));
+		EventManager.setEnterListener(() => this.setState("initial"));
 		createHeading("Show targets one by one", display, "btn btn-big btn-success").onclick = () =>
 			this.setState("showSingle");
 		createHeading("Show all targets selections", display, "btn btn-big btn-danger").onclick = () =>
@@ -230,8 +236,8 @@ class DisplayManager {
 		createHeading("Are you shure to see all targets?", display, "display-single display-warning");
 
 		EventManager.setEnterListener(() => this.setState("showAll"));
-		createButton("Im shure! (Enter)", () => this.setState("showAll"), "btn btn-menue btn-success");
-		createButton("Back to menu (ESC)", () => this.setState("initial"), "btn btn-menue btn-danger");
+		createButton("Im shure! (Enter)", () => this.setState("showAll"), "btn btn-menu btn-success");
+		createButton("Back to menu (ESC)", () => this.setState("initial"), "btn btn-menu btn-danger");
 	}
 	renderAll() {
 		const display = document.getElementById(displayID);
@@ -262,7 +268,7 @@ class DisplayManager {
 		display.appendChild(allPlayers);
 
 		EventManager.setEnterListener(null);
-		createButton("Back to menu (ESC)", () => this.setState("initial"), "btn btn-menue btn-danger");
+		createButton("Back to menu (ESC)", () => this.setState("initial"), "btn btn-menu btn-danger");
 	}
 	renderNextPlayer() {
 		const display = document.getElementById(displayID);
@@ -277,8 +283,8 @@ class DisplayManager {
 		);
 
 		EventManager.setEnterListener(() => this.setState("showNextTargets"));
-		createButton("Show targets (Enter)", () => this.setState("showNextTargets"), "btn btn-menue btn-success");
-		createButton("Back to menu (ESC)", () => this.setState("initial"), "btn btn-menue btn-danger");
+		createButton("Show targets (Enter)", () => this.setState("showNextTargets"), "btn btn-menu btn-success");
+		createButton("Back to menu (ESC)", () => this.setState("initial"), "btn btn-menu btn-danger");
 	}
 	renderNextTargets() {
 		const display = document.getElementById(displayID);
@@ -304,22 +310,22 @@ class DisplayManager {
 		display.appendChild(targetContainer);
 
 		EventManager.setEnterListener(() => this.setState("showNextPlayer"));
-		createButton("Show next player (Enter)", () => this.setState("showNextPlayer"), "btn btn-menue btn-success");
-		createButton("Back to menu (ESC)", () => this.setState("initial"), "btn btn-menue btn-danger");
+		createButton("Show next player (Enter)", () => this.setState("showNextPlayer"), "btn btn-menu btn-success");
+		createButton("Back to menu (ESC)", () => this.setState("initial"), "btn btn-menu btn-danger");
 	}
 	renderAllPlayersShown() {
 		const display = document.getElementById(displayID);
 		display.innerHTML = "";
 
 		createHeading(
-			"All players have been shown. Press ESC to go back to the main menue.",
+			"All players have been shown. Press ESC to go back to the main menu.",
 			display,
 			"display-single display-warning",
 			"h2"
 		);
 
 		EventManager.setEscListener(() => this.setState("initial"));
-		createButton("Back to menu (ESC)", () => this.setState("initial"), "btn btn-menue btn-success");
+		createButton("Back to menu (ESC)", () => this.setState("initial"), "btn btn-menu btn-success");
 	}
 }
 

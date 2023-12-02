@@ -1,120 +1,122 @@
 <!DOCTYPE html>
 <html lang="en">
-  <script lang="javascript">
-    const mySeed = null;
-    const myNames = `Jann Brauer,
-    Merle Böhm,
-    Kale Triebel,
-    Klaas Keineke,
-    Hoher Lussert,
-    Merkel Heimer,`;
-  </script>
+<script lang="javascript">
+	const mySeed = null;
+	const myNames = `Jann Brauer,
+		   Merle Böhm,
+		   Kale Triebel,
+		   Klaas Keineke,
+		   Hoher Lussert,
+		   Merkel Heimer,
+		   Klaas Stroh,
+		   Boipelo Ermias
+Oluwafunmilayo Esi
+Kayin Olalekan
+Tidir Themba
+Yetunde Fatoumata
+Bilƙisu Yaƙubu
+Chidi Kyauta
+Bukola Mandla
+Yejide Nuru
+Aamina Nosizwe
+Bahati Funmilayo
+Bukar Gbemisola
+Tadesse Ngozi
+Rakiya Tafadzwa
+Efua Chima
+Buhle Dawit
+Mamadu Oluchi
+Shehu Fatimata
+Kojo Muthoni
+Awiti Kgosi
+ 
+		   `;
+</script>
 
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Killer Names</title>
-    <link rel="stylesheet" href="killer_names.css" />
-    <script src="killer_names.js"></script>
+<head>
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<title>Killer Names</title>
+	<link rel="stylesheet" href="killer_names.css" />
+	<script src="killer_names.js"></script>
 
-    <script>
-      var sidebarElement, toggleSidebarButton, contentElement;
+	<script>
+		var sidebarElement, toggleSidebarButton, contentElement;
 
-      document.addEventListener("DOMContentLoaded", function () {
-        sidebarElement = document.getElementById("sidebar");
-        toggleSidebarButton = document.getElementById("toggle-sidebar");
-        contentElement = document.getElementById("content");
-      });
+		document.addEventListener("DOMContentLoaded", function () {
+			sidebarElement = document.getElementById("sidebar");
+			toggleSidebarButton = document.getElementById("toggle-sidebar");
+			contentElement = document.getElementById("content");
+		});
 
-      window.addEventListener("resize", function () {
-        if (window.innerWidth > 768) {
-          sidebarElement.classList.remove("open");
-          toggleSidebarButton.classList.remove("open");
-          contentElement.classList.remove("hidden");
-        }
-      });
+		window.addEventListener("resize", function () {
+			if (window.innerWidth > 900) {
+				sidebarElement.classList.remove("open");
+				toggleSidebarButton.classList.remove("open");
+				contentElement.classList.remove("hidden");
+			}
+		});
 
-      function toggleSidebar() {
-        sidebarElement.classList.toggle("open");
-        toggleSidebarButton.classList.toggle("open");
-        contentElement.classList.toggle("hidden");
-      }
-    </script>
-  </head>
+		function toggleSidebar() {
+			sidebarElement.classList.toggle("open");
+			toggleSidebarButton.classList.toggle("open");
+			contentElement.classList.toggle("hidden");
+		}
+	</script>
+</head>
 
-  <body>
-    <main>
-      <div id="toggle-sidebar" onclick="toggleSidebar()">
-        <div class="line"></div>
-        <div class="line"></div>
-        <div class="line"></div>
-      </div>
-      <div id="sidebar">
-        <h1>Killer Names</h1>
-        <div id="buttons">
-          <div class="form-label-wrapper target-count">
-            <label for="target-count" class="form-label"
-              >Number of targets:</label
-            >
-            <input
-              type="number"
-              id="target-count"
-              class="form-input"
-              min="1"
-              value="2"
-            />
-          </div>
+<body>
+	<main>
+		<div id="toggle-sidebar" onclick="toggleSidebar()">
+			<div class="line"></div>
+			<div class="line"></div>
+			<div class="line"></div>
+		</div>
+		<div id="sidebar">
+			<h1>Killer Names</h1>
+			<div id="buttons">
+				<div class="form-label-wrapper target-count">
+					<label for="target-count" class="form-label">Number of targets:</label>
+					<input type="number" id="target-count" class="form-input" min="1" value="2" />
+				</div>
 
-          <div class="form-label-wrapper seeds">
-            <label for="seed-input" class="form-label">Seed (optional): </label>
-            <input type="text" id="seed-input" class="form-input" />
-          </div>
+				<div class="form-label-wrapper seeds">
+					<label for="seed-input" class="form-label">Seed (optional): </label>
+					<input type="text" id="seed-input" class="form-input" />
+				</div>
 
-          <button
-            id="generate"
-            class="btn btn-primary"
-            onclick="generateNames()"
-          >
-            Generate
-          </button>
-          <button
-            id="sort-textarea"
-            class="btn btn-warning"
-            onclick="sortTextarea()"
-          >
-            Sort Names
-          </button>
-        </div>
+				<button id="generate" class="btn btn-primary" onclick="generateNames()">Generate</button>
+				<button id="sort-textarea" class="btn btn-warning" onclick="sortTextarea()">Sort Names</button>
+			</div>
 
-        <div>Current player count: <span id="player-count">---</span></div>
+			<div>Current player count: <span id="player-count">---</span></div>
 
-        <div class="form-label-wrapper">
-          <label for="names" class="form-label"
-            >Names seperated by commas or line breaks:</label
-          >
-          <textarea
-            id="names"
-            placeholder="Enter names seperated by commas or line breaks"
-          ></textarea>
-        </div>
-      </div>
-      <div id="content">
-        <div id="button-container"></div>
-        <div id="display" class="column-flex">
-          <noscript>
-            <div class="tutorial">
-              JavaScript is disabled. Without JavaScript this page will not
-              function properly.
-            </div>
-            <style>
-              .script {
-                display: none;
-              }
-            </style>
-          </noscript>
-          <h2 class="tutorial script">Press Enter to generate targets</h2>
-        </div>
-      </div>
-    </main>
-  </body>
+			<div class="form-label-wrapper">
+				<label for="names" class="form-label">Names seperated by commas or line breaks:</label>
+				<textarea id="names" placeholder="Enter names seperated by commas or line breaks"></textarea>
+			</div>
+		</div>
+		<div id="content" tabindex="0">
+			<div id="button-container"></div>
+			<div id="display" class="column-flex">
+				<h2 class="tutorial noscript">
+					JavaScript is disabled. Without JavaScript this page will not function properly.
+				</h2>
+				<h2 class="tutorial script">Press Enter to generate targets</h2>
+			</div>
+		</div>
+	</main>
+
+	<noscript>
+		<style>
+			.script {
+				display: none;
+			}
+		</style>
+	</noscript>
+	<script lang="javascript">
+		document.querySelector(".noscript").style.display = "none";
+	</script>
+</body>
+
 </html>
