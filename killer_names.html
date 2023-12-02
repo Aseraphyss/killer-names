@@ -39,30 +39,6 @@ Awiti Kgosi
 	<title>Killer Names</title>
 	<link rel="stylesheet" href="killer_names.css" />
 	<script src="killer_names.js"></script>
-
-	<script>
-		var sidebarElement, toggleSidebarButton, contentElement;
-
-		document.addEventListener("DOMContentLoaded", function () {
-			sidebarElement = document.getElementById("sidebar");
-			toggleSidebarButton = document.getElementById("toggle-sidebar");
-			contentElement = document.getElementById("content");
-		});
-
-		window.addEventListener("resize", function () {
-			if (window.innerWidth > 900) {
-				sidebarElement.classList.remove("open");
-				toggleSidebarButton.classList.remove("open");
-				contentElement.classList.remove("hidden");
-			}
-		});
-
-		function toggleSidebar() {
-			sidebarElement.classList.toggle("open");
-			toggleSidebarButton.classList.toggle("open");
-			contentElement.classList.toggle("hidden");
-		}
-	</script>
 </head>
 
 <body>
@@ -116,6 +92,29 @@ Awiti Kgosi
 	</noscript>
 	<script lang="javascript">
 		document.querySelector(".noscript").style.display = "none";
+	</script>
+	<script>
+		var sidebarElement, toggleSidebarButton, contentElement;
+
+		document.addEventListener("DOMContentLoaded", function () {
+			sidebarElement = document.getElementById("sidebar");
+			toggleSidebarButton = document.getElementById("toggle-sidebar");
+			contentElement = document.getElementById("content");
+		});
+
+		window.addEventListener("resize", function () {
+			if (window.innerWidth > 900) {
+				sidebarElement.classList.remove("open");
+				toggleSidebarButton.classList.remove("open");
+				contentElement.classList.remove("hidden");
+			}
+		});
+
+		function toggleSidebar() {
+			sidebarElement.classList.toggle("open");
+			toggleSidebarButton.classList.toggle("open");
+			contentElement.classList.toggle("hidden");
+		}
 	</script>
 </body>
 
