@@ -50,7 +50,7 @@ textarea#names {
 	width: calc(100% - 2rem);
 	min-width: 10rem;
 	height: 50vh;
-	min-height: 30rem;
+	min-height: 15rem;
 	resize: none;
 	font-size: 1rem;
 }
@@ -309,7 +309,7 @@ main {
 
 @media screen and (max-width: 900px) {
 	#button-container {
-		padding-left: 3rem;
+		padding-left: 48px;
 	}
 
 	#toggle-sidebar {
@@ -342,6 +342,12 @@ main {
 		margin-left: unset;
 	}
 
+	#sidebar .form-label-wrapper,
+	#sidebar #buttons {
+		width: 80%;
+		text-align: center;
+	}
+
 	.hidden {
 		display: none !important;
 	}
@@ -349,12 +355,12 @@ main {
 
 @media screen and (max-width: 768px) {
 	html {
-		font-size: 0.7rem;
+		font-size: 0.8rem;
 	}
 }
 
 @media screen and (max-width: 600px) {
 	html {
-		font-size: 0.5rem;
+		font-size: 0.6rem;
 	}
 }
