@@ -1,3 +1,4 @@
+// --- import userdefined seed and names from the html file ---
 let initialSeed = null;
 try {
 	initialSeed = mySeed;
@@ -11,6 +12,7 @@ try {
 	console.error(e);
 }
 
+// --- tags of the html elements ---
 const textareaID = "names";
 const targetCountID = "target-count";
 const displayID = "display";
@@ -18,13 +20,14 @@ const playerCountID = "player-count";
 const seedID = "seed-input";
 const buttonID = "button-container";
 const contentID = "content";
+const sidebarID = "sidebar";
 
+// --- main interface to the html file for name generation ---
 function generateNames() {
 	const text = document.getElementById(textareaID).value;
 	const targetCount = document.getElementById(targetCountID).value;
 	acceptNames(text, targetCount);
 }
-
 function acceptNames(text, targetCount = 1) {
 	// split the text into an array of names at ",", "\n", or "\r" etc.
 	RanGen.resetFunction();
@@ -53,43 +56,6 @@ function acceptNames(text, targetCount = 1) {
 
 	displayTargets(players);
 }
-function tryAssignTargets(players) {
-	for (let tries = 0; tries < 100; tries++) {
-		try {
-			assignTargets(players);
-			return;
-		} catch (error) {
-			console.error("Target assignment failed. Trying again.");
-		}
-	}
-	alert("Target assignment failed. Too many tries.");
-	throw new Error("Target assignment failed. Too many tries.");
-}
-function assignTargets(players) {
-	// add a random target to each player so that a closed loop is created
-	let remainingTargets = [...players];
-	let currPlayer = remainingTargets.pop();
-	const firstPlayer = currPlayer;
-	while (remainingTargets.length > 0) {
-		const target = getRandomTarget(remainingTargets, currPlayer);
-		currPlayer.targets.push(target);
-		remainingTargets = remainingTargets.filter((p) => p !== target);
-		currPlayer = target;
-	}
-	// add the first player as the target of the last player
-	currPlayer.targets.push(firstPlayer);
-}
-
-function getRandomTarget(targets, player) {
-	// return a random target from the list of targets that is not the player
-	const newTargets = targets.filter((t) => !player.targets.includes(t));
-	if (newTargets.length === 0) throw new Error("No new targets left. Target assignment failed.");
-	let target;
-	do {
-		target = newTargets[Math.floor(RanGen.get() * newTargets.length)];
-	} while (target === player);
-	return target;
-}
 function parseNames(nameText) {
 	// split the text into an array of names at ",", "\n", or "\r" etc.
 	return nameText.split(/[,;\n\r]+/);
@@ -99,7 +65,6 @@ function sanitizeNames(names) {
 	const trimmedNames = names.map((name) => name.trim());
 	return trimmedNames.filter((name) => name !== "");
 }
-
 function validateNames(names) {
 	// return trimmed names with no duplicates and alert the user if there are duplicates with a list of the duplicates
 	const trimmedNames = [];
@@ -117,7 +82,6 @@ function validateNames(names) {
 	}
 	return trimmedNames;
 }
-
 function sortTextarea(text) {
 	const nameText = text ?? document.getElementById(textareaID).value;
 	const names = parseNames(nameText);
@@ -127,6 +91,7 @@ function sortTextarea(text) {
 	document.getElementById(textareaID).value = sortedNames.join(", \n");
 }
 
+// --- target assignment logic ---
 class Player {
 	constructor(name) {
 		this.name = name;
@@ -138,37 +103,73 @@ class Player {
 	}
 }
 
+function tryAssignTargets(players) {
+	for (let tries = 0; tries < 100; tries++) {
+		try {
+			assignTargets(players);
+			return;
+		} catch (error) {
+			console.error("Target assignment failed. Trying again.");
+		}
+	}
+	alert("Target assignment failed. Too many tries.");
+	throw new Error("Target assignment failed. Too many tries.");
+}
+function getRandomTarget(targets, player) {
+	// return a random target from the list of targets that is not the player
+	const newTargets = targets.filter((t) => !player.targets.includes(t));
+	if (newTargets.length === 0) throw new Error("No new targets left. Target assignment failed.");
+	let target;
+	do {
+		target = newTargets[Math.floor(RanGen.get() * newTargets.length)];
+	} while (target === player);
+	return target;
+}
+function assignTargets(players) {
+	// add a random target to each player so that a closed loop is created
+	let remainingTargets = [...players];
+	let currPlayer = remainingTargets.pop();
+	const firstPlayer = currPlayer;
+	while (remainingTargets.length > 0) {
+		const target = getRandomTarget(remainingTargets, currPlayer);
+		currPlayer.targets.push(target);
+		remainingTargets = remainingTargets.filter((p) => p !== target);
+		currPlayer = target;
+	}
+	// add the first player as the target of the last player
+	currPlayer.targets.push(firstPlayer);
+}
+
 function displayTargets(players) {
 	document.getElementById(playerCountID).innerHTML = players.length;
 	document.getElementById(seedID).value = RanGen.usedSeed;
 	new DisplayManager(players);
 }
 
+// --- display and click logic (state machine) ---
 class EventManager {
-	static lastEsc = null;
-	static lastEnter = null;
+	static lastListeners = { Escape: null, Enter: null, Backspace: null };
+	static setListener(type, callback) {
+		const content = document;
+		content.removeEventListener("keydown", EventManager.lastListeners[type]);
+		if (callback === null) return;
+		EventManager.lastListeners[type] = (e) => {
+			e.preventDefault();
+			if (e.key === type && e.repeat === false) {
+				callback();
+			}
+		};
+		content.addEventListener("keydown", EventManager.lastListeners[type]);
+	}
 
 	static setEscListener(callback) {
-		const content = document.getElementById(contentID);
-		content.removeEventListener("keydown", EventManager.lastEsc);
-		if (callback === null) return;
-		EventManager.lastEsc = (event) => {
-			if (event.key === "Escape" && event.repeat === false) {
-				callback();
-			}
-		};
-		content.addEventListener("keydown", EventManager.lastEsc);
+		EventManager.setListener("Escape", callback);
 	}
 	static setEnterListener(callback) {
-		const content = document.getElementById(contentID);
-		content.removeEventListener("keydown", EventManager.lastEnter);
-		if (callback === null) return;
-		EventManager.lastEnter = (event) => {
-			if (event.key === "Enter" && event.repeat === false) {
-				callback();
-			}
-		};
-		content.addEventListener("keydown", EventManager.lastEnter);
+		EventManager.setListener("Enter", callback);
+	}
+	static setBackspaceListener(callback) {
+		EventManager.setListener("Backspace", callback);
 	}
 }
 
@@ -176,18 +177,21 @@ class DisplayManager {
 	constructor(players) {
 		this.players = players;
 		this.state = "initial";
+		EventManager.setEscListener(() => this.nextState("inital"));
 		this.updateDisplay();
-		EventManager.setEscListener(() => this.setState("inital"));
 	}
-	setState(state) {
+	nextState(state) {
 		if (this.state === state) return;
 		this.state = state;
 		this.updateDisplay();
 	}
+
 	updateDisplay() {
 		document.getElementById(buttonID).innerText = "";
 		switch (this.state) {
 			case "initial":
+				EventManager.setListener("ArrowRight", null);
+				EventManager.setListener("ArrowLeft", null);
 				this.renderInitial();
 				break;
 			case "shureAllTargets":
@@ -197,37 +201,52 @@ class DisplayManager {
 				this.renderAll();
 				break;
 			case "showSingle":
-				this.currPlayer = -1;
-				this.setState("showNextPlayer");
+				this.renderSingle();
+				break;
+			case "showList":
+				this.currPlayer = 0;
+				this.nextState("showPlayer");
+				break;
+			case "showPrevPlayer":
+				this.currPlayer--;
+				this.nextState("showPlayer");
 				break;
 			case "showNextPlayer":
 				this.currPlayer++;
+				this.nextState("showPlayer");
+				break;
+			case "showPlayer":
+				if (this.currPlayer < 0) this.currPlayer = 0;
 				if (this.currPlayer >= this.players.length) {
-					this.setState("allPlayersShown");
+					this.nextState("allPlayersShown");
 					return;
 				}
-				this.renderNextPlayer();
+				this.renderPlayer();
 				break;
-			case "showNextTargets":
-				this.renderNextTargets();
+			case "showTargets":
+				this.renderTargets();
 				break;
 			case "allPlayersShown":
+				EventManager.setListener("ArrowRight", null);
+				EventManager.setListener("ArrowLeft", null);
 				this.renderAllPlayersShown();
 				break;
 			default:
 				console.error("Invalid state: " + this.state);
-				this.setState("initial");
+				this.nextState("initial");
 		}
 	}
 	renderInitial() {
 		const display = document.getElementById(displayID);
 		display.innerText = "";
 
-		EventManager.setEnterListener(() => this.setState("initial"));
-		createHeading("Show targets one by one", display, "btn btn-big btn-success").onclick = () =>
-			this.setState("showSingle");
-		createHeading("Show all targets selections", display, "btn btn-big btn-danger").onclick = () =>
-			this.setState("shureAllTargets");
+		EventManager.setEnterListener(() => this.nextState("initial"));
+		createHeading("Show targets one by one", display, "btn btn-big btn-hover btn-success", "button").onclick = () =>
+			this.nextState("showList");
+		createHeading("Skip directly to player", display, "btn btn-big btn-hover btn-success", "button").onclick = () =>
+			this.nextState("showSingle");
+		createHeading("Show all targets", display, "btn btn-big btn-hover btn-danger", "button").onclick = () =>
+			this.nextState("shureAllTargets");
 	}
 	renderShureAllTargets() {
 		const display = document.getElementById(displayID);
@@ -235,9 +254,9 @@ class DisplayManager {
 
 		createHeading("Are you shure to see all targets?", display, "display-single display-warning");
 
-		EventManager.setEnterListener(() => this.setState("showAll"));
-		createButton("Im shure! (Enter)", () => this.setState("showAll"), "btn btn-menu btn-success");
-		createButton("Back to menu (ESC)", () => this.setState("initial"), "btn btn-menu btn-danger");
+		EventManager.setEnterListener(() => this.nextState("showAll"));
+		createButton("Im shure! (Enter)", () => this.nextState("showAll"), "btn-success");
+		createButton("To menu (ESC)", () => this.nextState("initial"), "btn-warning");
 	}
 	renderAll() {
 		const display = document.getElementById(displayID);
@@ -252,7 +271,7 @@ class DisplayManager {
 			createHeading(
 				"player " + (i + 1) + " of " + this.players.length,
 				playerContainer,
-				"display-all display-progress",
+				"display-all display-progress-small",
 				"h2"
 			);
 
@@ -268,9 +287,35 @@ class DisplayManager {
 		display.appendChild(allPlayers);
 
 		EventManager.setEnterListener(null);
-		createButton("Back to menu (ESC)", () => this.setState("initial"), "btn btn-menu btn-danger");
+		createButton("To menu (ESC)", () => this.nextState("initial"), "btn-warning");
 	}
-	renderNextPlayer() {
+	renderSingle() {
+		const display = document.getElementById(displayID);
+		display.innerText = "";
+
+		const singlePlayers = document.createElement("div");
+		singlePlayers.className = "display-all single-players";
+		for (let i = 0; i < this.players.length; i++) {
+			const playerContainer = document.createElement("div");
+			playerContainer.className = "display-all player-container";
+			createHeading(this.players[i].name, playerContainer, "btn btn-success", "button").onclick = () => {
+				this.currPlayer = i;
+				this.nextState("showPlayer");
+			};
+			createHeading(
+				"player " + (i + 1) + " of " + this.players.length,
+				playerContainer,
+				"display-all display-progress",
+				"h2"
+			);
+			singlePlayers.appendChild(playerContainer);
+		}
+		display.appendChild(singlePlayers);
+
+		EventManager.setEnterListener(null);
+		createButton("To menu (ESC)", () => this.nextState("initial"), "btn-warning");
+	}
+	renderPlayer() {
 		const display = document.getElementById(displayID);
 		display.innerText = "";
 
@@ -278,25 +323,26 @@ class DisplayManager {
 		createHeading(
 			"player " + (this.currPlayer + 1) + " of " + this.players.length,
 			display,
-			"display-single display-progress",
+			"display-single display-progress-small",
 			"h2"
 		);
 
-		EventManager.setEnterListener(() => this.setState("showNextTargets"));
-		createButton("Show targets (Enter)", () => this.setState("showNextTargets"), "btn btn-menu btn-success");
-		createButton("Back to menu (ESC)", () => this.setState("initial"), "btn btn-menu btn-danger");
-	}
-	renderNextTargets() {
-		const display = document.getElementById(displayID);
-		// display.innerText = "";
+		const next = () => this.nextState("showTargets");
+		EventManager.setEnterListener(next);
+		EventManager.setListener("ArrowRight", next);
+		createButton("Show targets (Enter)", next, "btn-success");
 
-		// createHeading(this.players[this.currPlayer].name, display, "display-single display-player");
-		// createHeading(
-		// 	"player " + (this.currPlayer + 1) + " of " + this.players.length,
-		// 	display,
-		// 	"display-single display-progress",
-		// 	"h2"
-		// );
+		if (this.currPlayer !== 0) {
+			const back = () => this.nextState("showPrevPlayer");
+			EventManager.setBackspaceListener(back);
+			EventManager.setListener("ArrowLeft", back);
+			createButton("Go back (Backspace)", back, "btn-danger");
+		}
+
+		createButton("To menu (ESC)", () => this.nextState("initial"), "btn-warning");
+	}
+	renderTargets() {
+		const display = document.getElementById(displayID);
 
 		const targetContainer = document.createElement("div");
 		targetContainer.className = "display-single target-container small";
@@ -309,9 +355,15 @@ class DisplayManager {
 		}
 		display.appendChild(targetContainer);
 
-		EventManager.setEnterListener(() => this.setState("showNextPlayer"));
-		createButton("Show next player (Enter)", () => this.setState("showNextPlayer"), "btn btn-menu btn-success");
-		createButton("Back to menu (ESC)", () => this.setState("initial"), "btn btn-menu btn-danger");
+		const next = () => this.nextState("showNextPlayer");
+		const back = () => this.nextState("showPlayer");
+		EventManager.setEnterListener(next);
+		EventManager.setListener("ArrowRight", next);
+		EventManager.setBackspaceListener(back);
+		EventManager.setListener("ArrowLeft", back);
+		createButton("Show next player (Enter)", next, "btn-success");
+		createButton("Go back (Backspace)", back, "btn-danger");
+		createButton("To menu (ESC)", () => this.nextState("initial"), "btn-warning");
 	}
 	renderAllPlayersShown() {
 		const display = document.getElementById(displayID);
@@ -324,11 +376,11 @@ class DisplayManager {
 			"h2"
 		);
 
-		EventManager.setEscListener(() => this.setState("initial"));
-		createButton("Back to menu (ESC)", () => this.setState("initial"), "btn btn-menu btn-success");
+		createButton("To menu (ESC)", () => this.nextState("initial"), "btn-success");
 	}
 }
 
+// --- helper functions for html element creation ---
 function createHeading(text, parent, className = "display-single", tag = "h1") {
 	const heading = document.createElement(tag);
 	heading.innerHTML = text;
@@ -336,15 +388,16 @@ function createHeading(text, parent, className = "display-single", tag = "h1") {
 	parent.appendChild(heading);
 	return heading;
 }
-function createButton(text, onclick, className = "btn") {
+function createButton(text, onclick, className = "") {
 	const button = document.createElement("button");
 	button.innerHTML = text;
-	button.className = className;
+	button.className = "btn btn-menu btn-hover " + className;
 	button.onclick = onclick;
 	document.getElementById(buttonID).appendChild(button);
 	return button;
 }
 
+// --- seeded random number generator ---
 class RanGen {
 	static seed = initialSeed;
 	static get() {
@@ -390,6 +443,7 @@ class RanGen {
 }
 RanGen.resetFunction();
 
+// --- initialization on document load ---
 document.addEventListener("DOMContentLoaded", () => {
 	sortTextarea(defaultNames);
 	EventManager.setEnterListener(generateNames);
@@ -397,4 +451,8 @@ document.addEventListener("DOMContentLoaded", () => {
 		RanGen.setSeed(document.getElementById(seedID).value);
 	});
 	document.getElementById(seedID).value = RanGen.usedSeed;
+
+	document.getElementById(sidebarID).addEventListener("keydown", (event) => {
+		event.stopPropagation();
+	});
 });
