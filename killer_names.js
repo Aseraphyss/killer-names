@@ -50,9 +50,7 @@ function acceptNames(text, targetCount = 1) {
 		alert("The number of targets must be greater than 0.");
 		return;
 	}
-	for (let i = 0; i < targetCount; i++) {
-		tryAssignTargets(players);
-	}
+	assignTargets(players, targetCount);
 
 	displayTargets(players);
 }
@@ -92,6 +90,31 @@ function sortTextarea(text) {
 }
 
 // --- target assignment logic ---
+Array.prototype.popAt = function (index) {
+	return this.splice(index, 1)[0];
+};
+function factorial(n) {
+	if (n <= 0) return 1;
+	for (let i = n - 1; i > 0; i--) n *= i;
+	return n;
+}
+function getNthPermutation(n, base) {
+	let arr = base.slice();
+	let len = arr.length - 1;
+	let fact = factorial(len);
+	if (n >= fact * arr.length) throw new Error("n greater than possible permutations");
+	if (n < 0) throw new Error("n must be greater than 0");
+	let result = [];
+	for (; true; len--) {
+		const index = Math.floor(n / fact); // get index of element to add
+		result.push(arr.popAt(index)); // add element at index to result (and remove it from arr)
+		if (len <= 0) break;
+		n %= fact; // remove factor from k
+		fact /= len; // get next factorial
+	}
+	return result;
+}
+
 class Player {
 	constructor(name) {
 		this.name = name;
@@ -103,47 +126,36 @@ class Player {
 	}
 }
 
-function tryAssignTargets(players) {
-	for (let tries = 0; tries < 100; tries++) {
-		try {
-			assignTargets(players);
-			return;
-		} catch (error) {
-			console.error("Target assignment failed. Trying again.");
+function assignTargets(players, targetCount) {
+	if (targetCount < 1) throw new Error("TargetCount must be greater than 0");
+	if (targetCount >= players.length) throw new Error("TargetCount must be less than the number of players");
+
+	// setup basic loop
+	const ranNum = Math.floor(RanGen.get() * factorial(players.length));
+	const loop = getNthPermutation(ranNum, players);
+
+	loop.reduce((prev, curr) => {
+		prev.targets.push(curr);
+		return curr;
+	}, loop[loop.length - 1]);
+
+	// add additional targets
+	players.forEach((p) => {
+		while (p.targets.length < targetCount) {
+			const target = getRandomTarget(loop, p);
+			p.targets.push(target);
 		}
-	}
-	alert("Target assignment failed. Too many tries.");
-	throw new Error("Target assignment failed. Too many tries.");
+	});
 }
 function getRandomTarget(targets, player) {
 	// return a random target from the list of targets that is not the player
+	// give targets closer to the player a higher chance of being selected
 	const newTargets = targets.filter((t) => !player.targets.includes(t));
-	if (newTargets.length === 0) throw new Error("No new targets left. Target assignment failed.");
-	let target;
-	do {
-		target = newTargets[Math.floor(RanGen.get() * newTargets.length)];
-	} while (target === player);
-	return target;
-}
-function assignTargets(players) {
-	// add a random target to each player so that a closed loop is created
-	let remainingTargets = [...players];
-	let currPlayer = remainingTargets.pop();
-	const firstPlayer = currPlayer;
-	while (remainingTargets.length > 0) {
-		const target = getRandomTarget(remainingTargets, currPlayer);
-		currPlayer.targets.push(target);
-		remainingTargets = remainingTargets.filter((p) => p !== target);
-		currPlayer = target;
-	}
-	// add the first player as the target of the last player
-	currPlayer.targets.push(firstPlayer);
-}
-
-function displayTargets(players) {
-	document.getElementById(playerCountID).innerHTML = players.length;
-	document.getElementById(seedID).value = RanGen.usedSeed;
-	new DisplayManager(players);
+	if (newTargets.length === 0) throw new Error("No targets left");
+	const weightedRan = Math.pow(RanGen.get(), 2);
+	const indexOffset = Math.floor(weightedRan * (newTargets.length - 1) + 1);
+	const index = (newTargets.indexOf(player) + indexOffset) % newTargets.length;
+	return newTargets[index];
 }
 
 // --- display and click logic (state machine) ---
@@ -171,6 +183,12 @@ class EventManager {
 	static setBackspaceListener(callback) {
 		EventManager.setListener("Backspace", callback);
 	}
+}
+
+function displayTargets(players) {
+	document.getElementById(playerCountID).innerHTML = players.length;
+	document.getElementById(seedID).value = RanGen.usedSeed;
+	new DisplayManager(players);
 }
 
 class DisplayManager {
