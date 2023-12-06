@@ -208,6 +208,7 @@ class DisplayManager {
 		document.getElementById(buttonID).innerText = "";
 		switch (this.state) {
 			case "initial":
+				EventManager.setBackspaceListener(null);
 				EventManager.setListener("ArrowRight", null);
 				EventManager.setListener("ArrowLeft", null);
 				this.renderInitial();
@@ -245,6 +246,7 @@ class DisplayManager {
 				this.renderTargets();
 				break;
 			case "allPlayersShown":
+				EventManager.setBackspaceListener(null);
 				EventManager.setListener("ArrowRight", null);
 				EventManager.setListener("ArrowLeft", null);
 				this.renderAllPlayersShown();
@@ -261,7 +263,7 @@ class DisplayManager {
 		EventManager.setEnterListener(() => this.nextState("initial"));
 		createHeading("Show targets one by one", display, "btn btn-big btn-hover btn-success", "button").onclick = () =>
 			this.nextState("showList");
-		createHeading("Skip directly to player", display, "btn btn-big btn-hover btn-success", "button").onclick = () =>
+		createHeading("Skip directly to player", display, "btn btn-big btn-hover btn-warning", "button").onclick = () =>
 			this.nextState("showSingle");
 		createHeading("Show all targets", display, "btn btn-big btn-hover btn-danger", "button").onclick = () =>
 			this.nextState("shureAllTargets");
@@ -394,7 +396,7 @@ class DisplayManager {
 			"h2"
 		);
 
-		createButton("To menu (ESC)", () => this.nextState("initial"), "btn-success");
+		createButton("To menu (ESC)", () => this.nextState("initial"), "btn-warning");
 	}
 }
 

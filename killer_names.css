@@ -143,6 +143,7 @@ input.form-input[type="number"] {
 .btn-hover::before,
 .btn-hover::after {
 	content: "";
+	pointer-events: none;
 	position: absolute;
 	transition: 0.5s;
 	height: 0.4rem;
