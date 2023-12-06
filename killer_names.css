@@ -4,8 +4,8 @@
 	--bg-light2: #5f5f5f;
 	--bg-light3: #7e7e7e;
 	--accent: #ca3e47;
-	--danger: #9a2e35;
-	--warning: #897227;
+	--danger: #84282e;
+	--warning: #a88d31;
 	--success: #3cb043;
 	--text: #ecdfd7;
 	--default-transition: all 0.2s ease-out;
@@ -147,7 +147,7 @@ input.form-input[type="number"] {
 	transition: 0.5s;
 	height: 0.4rem;
 	width: 6%;
-	border: 0.2rem solid var(--this-color);
+	border: 0.15rem solid var(--this-color);
 	background-color: var(--bg-light1);
 }
 .btn-hover::before {
@@ -161,8 +161,11 @@ input.form-input[type="number"] {
 .btn-hover:hover {
 	background-color: var(--bg-light2);
 	border-color: var(--this-color);
-	letter-spacing: 0.2rem;
 	color: var(--this-color);
+	box-shadow: 0 0 0.5rem var(--this-color);
+}
+.btn-big:hover {
+	letter-spacing: 0.2rem;
 }
 .btn-hover:hover::before,
 .btn-hover:hover::after {
