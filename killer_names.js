@@ -36,21 +36,14 @@ function acceptNames(text, targetCount = 1) {
 	const validatedNames = validateNames(sanitizedNames);
 
 	// create a list of players
-	const players = [];
+	let players = [];
 	for (let i = 0; i < validatedNames.length; i++) {
 		players.push(new Player(validatedNames[i]));
 	}
 
 	// assign targets
-	if (targetCount >= players.length) {
-		alert("The number of targets must be less than the number of players.");
-		return;
-	}
-	if (targetCount < 1) {
-		alert("The number of targets must be greater than 0.");
-		return;
-	}
-	assignTargets(players, targetCount);
+	const assignWorked = assignTargets(players, targetCount);
+	if (!assignWorked) return;
 
 	displayTargets(players);
 }
@@ -90,29 +83,85 @@ function sortTextarea(text) {
 }
 
 // --- target assignment logic ---
-Array.prototype.popAt = function (index) {
-	return this.splice(index, 1)[0];
-};
-function factorial(n) {
-	if (n <= 0) return 1;
-	for (let i = n - 1; i > 0; i--) n *= i;
-	return n;
-}
-function getNthPermutation(n, base) {
-	let arr = base.slice();
-	let len = arr.length - 1;
-	let fact = factorial(len);
-	if (n >= fact * arr.length) throw new Error("n greater than possible permutations");
-	if (n < 0) throw new Error("n must be greater than 0");
-	let result = [];
-	for (; true; len--) {
-		const index = Math.floor(n / fact); // get index of element to add
-		result.push(arr.popAt(index)); // add element at index to result (and remove it from arr)
-		if (len <= 0) break;
-		n %= fact; // remove factor from k
-		fact /= len; // get next factorial
+class Factorial {
+	static facts = [1n];
+	static get(n) {
+		return this.facts[n];
 	}
-	return result;
+	static make(n) {
+		if (n < 0) throw new Error("n must be positive");
+		if (n >= this.facts.length) {
+			for (let i = this.facts.length; i <= n; i++) {
+				const newFact = BigInt(this.facts[i - 1]) * BigInt(i);
+				this.facts.push(newFact);
+			}
+		}
+		return this.facts[n];
+	}
+}
+class Permutation {
+	static factorial(n) {
+		if (n <= 0) return 1;
+		for (let i = n - 1; i > 0; i--) n *= i;
+		return n;
+	}
+	static getRan(numberOfElements) {
+		const fact = Factorial.make(numberOfElements);
+		const ran = RanGen.normalizedBigInt(fact);
+		return Permutation.getNth(ran, numberOfElements);
+	}
+	static getNth(index, numberOfElements) {
+		let n = BigInt(index);
+		const l = numberOfElements;
+		if (n >= Factorial.make(l)) throw new Error("n is too large (n >= " + Factorial.get(l) + ")");
+		let perm = Array(l);
+		for (let k = 0; k < l; k++) {
+			perm[k] = Number(n / Factorial.get(l - k - 1));
+			n = n % Factorial.get(l - k - 1);
+		}
+		for (let k = l - 1; k > 0; k--) {
+			for (let j = k - 1; j >= 0; j--) {
+				if (perm[j] <= perm[k]) perm[k]++;
+			}
+		}
+
+		return perm;
+	}
+	static isCompatible(p) {
+		if (p[0] !== 0) return false;
+
+		const l = p.length;
+		for (let i = 0; i < l; i++) {
+			const indexInQ = p.indexOf(i);
+			if (indexInQ === -1) return false;
+
+			const nextP = (i + 1) % l;
+			const prevP = (i + l - 1) % l;
+			const nextQ = p[(indexInQ + 1) % l];
+			// no pairs of following elements are the same (circular)
+			if (nextP === nextQ) return false;
+			// no pairs of previous elements are the same (circular)
+			if (prevP === nextQ) return false;
+		}
+
+		return true;
+	}
+	static getRanCompatible(numberOfElements) {
+		const fact = Factorial.make(numberOfElements - 1);
+		for (let i = 0; i < 10000; i++) {
+			const ran = RanGen.normalizedBigInt(fact);
+			const p = Permutation.getNth(ran, numberOfElements);
+			if (Permutation.isCompatible(p)) return p;
+		}
+		throw new Error("No compatible permutation found");
+	}
+	static apply(arr, perm) {
+		let result = Array(arr.length);
+		for (let i = 0; i < arr.length; i++) {
+			result[i] = arr[perm[i]];
+		}
+		return result;
+	}
 }
 
 class Player {
@@ -127,35 +176,31 @@ class Player {
 }
 
 function assignTargets(players, targetCount) {
-	if (targetCount < 1) throw new Error("TargetCount must be greater than 0");
-	if (targetCount >= players.length) throw new Error("TargetCount must be less than the number of players");
-
+	const numTargets = Number(targetCount);
+	if (numTargets !== 1 && numTargets !== 2) {
+		alert("Number of targets must be 1 or 2 but is " + numTargets + ".");
+		return false;
+	}
 	// setup basic loop
-	const ranNum = Math.floor(RanGen.get() * factorial(players.length));
-	const loop = getNthPermutation(ranNum, players);
+	const base = Permutation.getRan(players.length);
+	addTargetPermutation(players, base);
 
+	if (numTargets === 2) {
+		// setup second loop
+		const second = Permutation.getRanCompatible(players.length);
+		const secondBase = Permutation.apply(base, second);
+		addTargetPermutation(players, secondBase);
+	}
+
+	return true;
+}
+function addTargetPermutation(players, permutation) {
+	if (permutation.length !== players.length) throw new Error("permutation must have the same length as players");
+	const loop = Permutation.apply(players, permutation);
 	loop.reduce((prev, curr) => {
 		prev.targets.push(curr);
 		return curr;
 	}, loop[loop.length - 1]);
-
-	// add additional targets
-	players.forEach((p) => {
-		while (p.targets.length < targetCount) {
-			const target = getRandomTarget(loop, p);
-			p.targets.push(target);
-		}
-	});
-}
-function getRandomTarget(targets, player) {
-	// return a random target from the list of targets that is not the player
-	// give targets closer to the player a higher chance of being selected
-	const newTargets = targets.filter((t) => !player.targets.includes(t));
-	if (newTargets.length === 0) throw new Error("No targets left");
-	const weightedRan = Math.pow(RanGen.get(), 2);
-	const indexOffset = Math.floor(weightedRan * (newTargets.length - 1) + 1);
-	const index = (newTargets.indexOf(player) + indexOffset) % newTargets.length;
-	return newTargets[index];
 }
 
 // --- display and click logic (state machine) ---
@@ -459,6 +504,26 @@ class RanGen {
 		h4 = Math.imul(h2 ^ (h4 >>> 19), 2716044179);
 		(h1 ^= h2 ^ h3 ^ h4), (h2 ^= h1), (h3 ^= h1), (h4 ^= h1);
 		return [h1 >>> 0, h2 >>> 0, h3 >>> 0, h4 >>> 0];
+	}
+
+	static normalizedBigInt(max) {
+		const bits = RanGen.getBigIntBits(max);
+		const divisor = 2n ** BigInt(bits);
+		const factor = RanGen.ranBigInt(bits);
+		return (max * factor) / divisor;
+	}
+	static ranBigInt(bits) {
+		const mod = 16;
+		let result = 0n;
+		for (let i = 0; i < bits; i += mod) {
+			result <<= BigInt(mod);
+			result += BigInt(Math.floor(Math.random() * 2 ** mod));
+		}
+		result >>= BigInt(mod - (bits % mod));
+		return result;
+	}
+	static getBigIntBits(num) {
+		return num.toString(2).length;
 	}
 }
 RanGen.resetFunction();
