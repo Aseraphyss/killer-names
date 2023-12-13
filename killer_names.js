@@ -517,7 +517,7 @@ class RanGen {
 		let result = 0n;
 		for (let i = 0; i < bits; i += mod) {
 			result <<= BigInt(mod);
-			result += BigInt(Math.floor(Math.random() * 2 ** mod));
+			result += BigInt(Math.floor(RanGen.get() * 2 ** mod));
 		}
 		result >>= BigInt(mod - (bits % mod));
 		return result;
