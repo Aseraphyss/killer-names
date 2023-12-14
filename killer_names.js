@@ -64,6 +64,7 @@ function acceptNames(text, targetCount = 1) {
 	try {
 		assignTargets(players, nAssignments);
 	} catch (e) {
+		if (!(e instanceof AssignmentError)) throw e;
 		const message =
 			e +
 			" No new targets are displayed.\n" +
@@ -121,6 +122,13 @@ class Player {
 	}
 }
 
+class AssignmentError extends Error {
+	constructor(message) {
+		super(message);
+		this.name = "AssignmentError";
+	}
+}
+
 function assignTargets(players, nAssignments) {
 	for (let i = 0; i < nAssignments; i++) {
 		retryAddTargets(players);
@@ -130,15 +138,16 @@ function assignTargets(players, nAssignments) {
 function retryAddTargets(players) {
 	let tries = 1;
 	while (!addTargets(players)) {
-		if (tries >= maxTries) throw new Error("Failed to add targets after " + tries + " tries.");
+		if (tries >= maxTries) throw new AssignmentError("Failed to add targets after " + tries + " tries.");
 		tries++;
 	}
 }
 
-function isValidTarget(player, target, invalid) {
+function isValidTarget(player, target, allInvalids, currInvalid) {
 	return (
 		player !== target &&
-		!invalid.includes(target) &&
+		target !== currInvalid &&
+		!allInvalids.includes(target) &&
 		!player.targets.includes(target) &&
 		!target.targets.includes(player)
 	);
@@ -147,9 +156,9 @@ function isValidTarget(player, target, invalid) {
 function addTargets(players) {
 	let targets = [];
 	for (let i = 0; i < players.length; i++) {
-		const valid = players.filter((t) => isValidTarget(players[i], t, targets));
-		if (valid.length === 0) return false;
-		targets.push(valid[RanGen.int(valid.length)]);
+		const validTs = players.filter((t, j) => isValidTarget(players[i], t, targets, targets[j] ?? null));
+		if (validTs.length === 0) return false;
+		targets.push(validTs[RanGen.int(validTs.length)]);
 	}
 	players.forEach((p, i) => p.targets.push(targets[i]));
 	return true;
