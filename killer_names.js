@@ -59,10 +59,12 @@ function acceptNames(text, targetCount = 1) {
 		).toFixed(0)}% of the player count. This might result in a bad or failing target assignment.`;
 		DisplayManager.warn(message);
 	}
+	// asign base loop
+	assignLoop(players);
 
-	// assign targets
+	// assign additional targets
 	try {
-		assignTargets(players, nAssignments);
+		assignTargets(players, nAssignments - 1);
 	} catch (e) {
 		if (!(e instanceof AssignmentError)) throw e;
 		const message =
@@ -127,6 +129,19 @@ class AssignmentError extends Error {
 		super(message);
 		this.name = "AssignmentError";
 	}
+}
+
+function assignLoop(players = []) {
+	let remaining = players.slice();
+	let loop = [];
+	while (remaining.length > 0) {
+		const i = RanGen.int(remaining.length);
+		loop.push(remaining.splice(i, 1)[0]);
+	}
+	loop.reduce((prev, curr) => {
+		prev.targets.push(curr);
+		return curr;
+	}, loop[loop.length - 1]);
 }
 
 function assignTargets(players, nAssignments) {
