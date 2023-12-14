@@ -199,7 +199,7 @@ class DisplayManager {
 	constructor(players) {
 		this.players = players;
 		this.state = "initial";
-		EventManager.setEscListener(() => this.nextState("inital"));
+		EventManager.setEscListener(() => this.nextState("initial"));
 		this.updateDisplay();
 	}
 	nextState(state) {
