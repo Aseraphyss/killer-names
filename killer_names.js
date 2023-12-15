@@ -131,7 +131,7 @@ class AssignmentError extends Error {
 	}
 }
 
-function assignLoop(players = []) {
+function assignLoop(players) {
 	let remaining = players.slice();
 	let loop = [];
 	while (remaining.length > 0) {
