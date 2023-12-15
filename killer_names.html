@@ -56,7 +56,15 @@
 
 				<div class="form-label-wrapper seeds">
 					<label for="seed-input" class="form-label">Seed (optional): </label>
-					<input type="text" id="seed-input" class="form-input" />
+					<input type="password" id="seed-input" class="form-input" />
+					<input type="checkbox" id="seed-visible" class="form-input visible-checkbox"
+						onchange="toggleSeedVisible()" checked />
+					<script lang="javascript">
+						function toggleSeedVisible() {
+							var seedInput = document.getElementById("seed-input");
+							seedInput.type = (seedInput.type === "password") ? "text" : "password";
+						}
+					</script>
 				</div>
 
 				<button id="generate" class="btn btn-primary" onclick="generateNames()">Generate</button>

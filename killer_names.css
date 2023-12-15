@@ -83,6 +83,17 @@ textarea#names:focus {
 	border-bottom: 1px solid var(--bg-light1);
 	transition: all 0.2s var(--default-transition);
 }
+.form-label-wrapper.seeds {
+	display: flex;
+	flex-direction: row;
+	flex-wrap: wrap;
+}
+.form-label-wrapper.seeds > label {
+	width: 100%;
+}
+.form-label-wrapper.seeds > input {
+	width: unset;
+}
 .form-label-wrapper:focus-within {
 	border-bottom-color: var(--accent);
 }
@@ -117,6 +128,9 @@ input::-webkit-inner-spin-button {
 input.form-input[type="text"],
 input.form-input[type="number"] {
 	height: 1.5rem;
+}
+input.visible-checkbox:checked {
+	background-color: var(--danger);
 }
 .btn {
 	cursor: pointer;
