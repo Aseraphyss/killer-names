@@ -241,8 +241,8 @@ class DisplayManager {
 				EventManager.setListener("ArrowLeft", null);
 				this.renderInitial();
 				break;
-			case "shureAllTargets":
-				this.renderShureAllTargets();
+			case "sureAllTargets":
+				this.renderSureAllTargets();
 				break;
 			case "showAll":
 				this.renderAll();
@@ -294,16 +294,16 @@ class DisplayManager {
 		createHeading("Skip directly to player", display, "btn btn-big btn-hover btn-warning", "button").onclick = () =>
 			this.nextState("showSingle");
 		createHeading("Show all targets", display, "btn btn-big btn-hover btn-danger", "button").onclick = () =>
-			this.nextState("shureAllTargets");
+			this.nextState("sureAllTargets");
 	}
-	renderShureAllTargets() {
+	renderSureAllTargets() {
 		const display = document.getElementById(displayID);
 		display.innerHTML = "";
 
-		createHeading("Are you shure to see all targets?", display, "display-single display-warning");
+		createHeading("Are you sure to see all targets?", display, "display-single display-warning");
 
 		EventManager.setEnterListener(() => this.nextState("showAll"));
-		createButton("Im shure! (Enter)", () => this.nextState("showAll"), "btn-success");
+		createButton("Im sure! (Enter)", () => this.nextState("showAll"), "btn-success");
 		createButton("To menu (ESC)", () => this.nextState("initial"), "btn-warning");
 	}
 	renderAll() {
